@@ -20,13 +20,13 @@
             touch-action: none;
         }
 
-        /* 2. ゲームコンテナ：9:16比率を完全に固定 */
+        /* 2. ゲームコンテナ：高さ100vh固定 ＆ 9:16比率維持 */
         .game-container {
             position: relative;
-            /* 常に9:16を維持したまま、画面（100vw × 100vh）に最大限収まるサイズを自動計算 */
-            width: min(100vw, calc(100vh * (9 / 16)));
-            height: min(100vh, calc(100vw * (16 / 9)));
+            height: 100vh;
+            width: calc(100vh * (9 / 16));
             box-shadow: 0 0 30px rgba(0, 0, 0, 0.9);
+            flex-shrink: 0;
         }
 
         canvas {
@@ -36,11 +36,49 @@
             background: #000;
         }
 
-        /* HTMLのスタートボタン */
+        /* UIバー */
+        .top-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            background-color: rgba(0, 0, 0, 0.35);
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            box-sizing: border-box;
+            z-index: 10;
+        }
+
+        /* フルスクリーンボタン */
+        #fullscreenBtn {
+            background-color: transparent;
+            color: #ffffff;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            padding: 4px 12px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            outline: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        #fullscreenBtn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        #fullscreenBtn:active {
+            transform: scale(0.95);
+        }
+
+        /* スタートボタン */
         #startBtn {
             position: absolute;
             left: 50%;
-            bottom: 15%; /* 比率固定に合わせてパーセント指定で調整 */
+            bottom: 15%;
             transform: translateX(-50%);
             width: 50%;
             height: 7.5%;
@@ -53,6 +91,7 @@
             cursor: pointer;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
             transition: transform 0.1s, background-color 0.2s;
+            z-index: 5;
         }
 
         #startBtn:hover {
@@ -67,8 +106,11 @@
 </head>
 <body>
 
-    <div class="game-container">
-        <!-- Canvas内部解像度は 450 x 800 で固定 -->
+    <div class="game-container" id="gameContainer">
+        <div class="top-bar">
+            <button id="fullscreenBtn">全画面</button>
+        </div>
+
         <canvas id="gameCanvas" width="450" height="800"></canvas>
         <button id="startBtn">START</button>
     </div>
@@ -77,16 +119,13 @@
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
         const startBtn = document.getElementById("startBtn");
+        const fullscreenBtn = document.getElementById("fullscreenBtn");
 
-        // --------------------------------------------------
-        // 1. 変数と状態の管理
-        // --------------------------------------------------
         let scene = "title";
 
         const bgImage = new Image();
-        bgImage.src = "title_bg.png"; // 画像ファイルを指定
+        bgImage.src = "title_bg.png";
 
-        // 画像をアスペクト比を崩さずに描画
         function drawCoverImage(img) {
             const canvasRatio = canvas.width / canvas.height;
             const imgRatio = img.width / img.height;
@@ -107,15 +146,29 @@
             ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
         }
 
-        // --------------------------------------------------
-        // 2. イベント処理
-        // --------------------------------------------------
         startBtn.addEventListener("click", () => {
             scene = "game";
             startBtn.style.display = "none";
         });
 
-        // スクロール・横揺れ防止
+        // ページ全体（document.documentElement）をフルスクリーン化
+        fullscreenBtn.addEventListener("click", () => {
+            const docEl = document.documentElement;
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                if (docEl.requestFullscreen) {
+                    docEl.requestFullscreen();
+                } else if (docEl.webkitRequestFullscreen) {
+                    docEl.webkitRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+            }
+        });
+
         window.addEventListener("wheel", (e) => e.preventDefault(), { passive: false });
         window.addEventListener("touchmove", (e) => e.preventDefault(), { passive: false });
         window.addEventListener("keydown", (e) => {
@@ -123,14 +176,10 @@
             if (keysToBlock.includes(e.key)) e.preventDefault();
         });
 
-        // --------------------------------------------------
-        // 3. 描画処理（メインループ）
-        // --------------------------------------------------
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             if (scene === "title") {
-                // --- 【タイトル画面】 ---
                 if (bgImage.complete && bgImage.naturalWidth !== 0) {
                     drawCoverImage(bgImage);
                 } else {
@@ -138,7 +187,6 @@
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                 }
 
-                // タイトル文字
                 ctx.fillStyle = "#ffffff";
                 ctx.font = "bold 40px sans-serif";
                 ctx.textAlign = "center";
@@ -148,7 +196,6 @@
                 ctx.shadowBlur = 0;
 
             } else if (scene === "game") {
-                // --- 【ゲームプレイ画面】 ---
                 ctx.fillStyle = "#1b5e20";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -161,7 +208,6 @@
             requestAnimationFrame(draw);
         }
 
-        // ゲームループ開始
         draw();
     </script>
 </body>
