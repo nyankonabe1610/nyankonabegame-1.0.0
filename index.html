@@ -20,11 +20,11 @@
             touch-action: none;
         }
 
-        /* 2. ゲームコンテナ：高さ100vh固定 ＆ 9:16比率維持 */
+        /* 2. ゲームコンテナ：高さ100vh固定 ＆ 450:850比率維持 */
         .game-container {
             position: relative;
             height: 100vh;
-            width: calc(100vh * (9 / 16));
+            width: calc(100vh * (450 / 850)); /* 450:850の比率で横幅を算出 */
             box-shadow: 0 0 30px rgba(0, 0, 0, 0.9);
             flex-shrink: 0;
         }
@@ -111,7 +111,8 @@
             <button id="fullscreenBtn">全画面</button>
         </div>
 
-        <canvas id="gameCanvas" width="450" height="800"></canvas>
+        <!-- Canvas内部解像度を 450 x 850 に変更 -->
+        <canvas id="gameCanvas" width="450" height="850"></canvas>
         <button id="startBtn">START</button>
     </div>
 
@@ -202,7 +203,7 @@
                 ctx.fillStyle = "#ffffff";
                 ctx.font = "bold 28px sans-serif";
                 ctx.textAlign = "center";
-                ctx.fillText("～ ゲーム画面 ～", canvas.width / 2, 400);
+                ctx.fillText("～ ゲーム画面 ～", canvas.width / 2, 425);
             }
 
             requestAnimationFrame(draw);
