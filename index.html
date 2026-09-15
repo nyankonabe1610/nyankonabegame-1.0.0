@@ -4,213 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>スマホ向けタイトル画面</title>
-    <style>
-        /* 1. 画面全体を固定し、上下左右中央寄せ */
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
-            background-color: #111;
-            
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            touch-action: none;
-        }
-
-        /* 2. PC・スマホ問わず「画面内に完全に収まり、450:850比率を崩さない」設定 */
-        .game-container {
-            position: relative;
-            /* 画面の幅・高さどちらにもはみ出さず最大化 */
-            width: min(100vw, calc(100vh * (450 / 850)));
-            height: min(100vh, calc(100vw * (850 / 450)));
-            aspect-ratio: 450 / 850;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.9);
-            flex-shrink: 0;
-        }
-
-        canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
-            background: #000;
-        }
-
-        /* UIバー */
-        .top-bar {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 50px;
-            background-color: rgba(0, 0, 0, 0.35);
-            display: flex;
-            align-items: center;
-            padding: 0 10px;
-            box-sizing: border-box;
-            z-index: 10;
-        }
-
-        /* フルスクリーンボタン */
-        #fullscreenBtn {
-            background-color: transparent;
-            color: #ffffff;
-            border: 2px solid rgba(255, 255, 255, 0.8);
-            border-radius: 8px;
-            padding: 4px 12px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            outline: none;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            transition: background-color 0.2s, transform 0.1s;
-        }
-
-        #fullscreenBtn:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-
-        #fullscreenBtn:active {
-            transform: scale(0.95);
-        }
-
-        /* スタートボタン */
-        #startBtn {
-            position: absolute;
-            left: 50%;
-            bottom: 15%;
-            transform: translateX(-50%);
-            width: 50%;
-            height: 7.5%;
-            font-size: 24px;
-            font-weight: bold;
-            color: #fff;
-            background-color: #ff4081;
-            border: none;
-            border-radius: 30px;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            transition: transform 0.1s, background-color 0.2s;
-            z-index: 5;
-        }
-
-        #startBtn:hover {
-            background-color: #ff80ab;
-            transform: translateX(-50%) scale(1.05);
-        }
-
-        #startBtn:active {
-            transform: translateX(-50%) scale(0.95);
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div class="game-container" id="gameContainer">
         <div class="top-bar">
             <button id="fullscreenBtn">全画面</button>
+            <button id="resetBtn">初期化</button>
         </div>
 
         <canvas id="gameCanvas" width="450" height="850"></canvas>
+        <!-- ダイアログ（初期化確認画面） -->
+<div id="dialogOverlay" class="dialog-overlay" style="display: none;">
+    <div class="dialog-box">
+        <p id="dialogMessage">初期化しますか？</p>
+        <div class="dialog-buttons">
+            <button id="dialogYesBtn">はい</button>
+            <button id="dialogNoBtn">いいえ</button>
+        </div>
+    </div>
+</div>
+
+        <!-- STARTボタン（タイトル画面専用） -->
         <button id="startBtn">START</button>
+
+        <!-- メニュー画面用UI -->
+        <div id="menuUI" style="display: none;">
+            <div class="tab-bar">
+                <button class="tab-btn" data-tab="stage">ステージ</button>
+                <button class="tab-btn" data-tab="shop">ショップ</button>
+                <button class="tab-btn" data-tab="other">その他</button>
+            </div>
+            
+            <div class="stage-list">
+                <button class="stage-btn" data-stage="1">信号</button>
+                <button class="stage-btn" data-stage="2">遮断</button>
+                <button class="stage-btn" data-stage="3">ステージ 3</button>
+                <button class="stage-btn" data-stage="4">ステージ 4</button>
+            </div>
+        </div>
     </div>
 
-    <script>
-        const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d");
-        const startBtn = document.getElementById("startBtn");
-        const fullscreenBtn = document.getElementById("fullscreenBtn");
-
-        let scene = "title";
-
-        const bgImage = new Image();
-        bgImage.src = "title_bg.png";
-
-        function drawCoverImage(img) {
-            const canvasRatio = canvas.width / canvas.height;
-            const imgRatio = img.width / img.height;
-            let sx, sy, sWidth, sHeight;
-
-            if (imgRatio > canvasRatio) {
-                sHeight = img.height;
-                sWidth = img.height * canvasRatio;
-                sx = (img.width - sWidth) / 2;
-                sy = 0;
-            } else {
-                sWidth = img.width;
-                sHeight = img.width / canvasRatio;
-                sx = 0;
-                sy = (img.height - sHeight) / 2;
-            }
-
-            ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
-        }
-
-        startBtn.addEventListener("click", () => {
-            scene = "game";
-            startBtn.style.display = "none";
-        });
-
-        // ページ全体（document.documentElement）をフルスクリーン化
-        fullscreenBtn.addEventListener("click", () => {
-            const docEl = document.documentElement;
-            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-                if (docEl.requestFullscreen) {
-                    docEl.requestFullscreen();
-                } else if (docEl.webkitRequestFullscreen) {
-                    docEl.webkitRequestFullscreen();
-                }
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) {
-                    document.webkitExitFullscreen();
-                }
-            }
-        });
-
-        window.addEventListener("wheel", (e) => e.preventDefault(), { passive: false });
-        window.addEventListener("touchmove", (e) => e.preventDefault(), { passive: false });
-        window.addEventListener("keydown", (e) => {
-            const keysToBlock = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " ", "PageUp", "PageDown"];
-            if (keysToBlock.includes(e.key)) e.preventDefault();
-        });
-
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            if (scene === "title") {
-                if (bgImage.complete && bgImage.naturalWidth !== 0) {
-                    drawCoverImage(bgImage);
-                } else {
-                    ctx.fillStyle = "#222";
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                }
-
-                ctx.fillStyle = "#ffffff";
-                ctx.font = "bold 40px sans-serif";
-                ctx.textAlign = "center";
-                ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
-                ctx.shadowBlur = 10;
-                ctx.fillText("にゃんこ鍋", canvas.width / 2, 220);
-                ctx.shadowBlur = 0;
-
-            } else if (scene === "game") {
-                ctx.fillStyle = "#1b5e20";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                ctx.fillStyle = "#ffffff";
-                ctx.font = "bold 28px sans-serif";
-                ctx.textAlign = "center";
-                ctx.fillText("～ ゲーム画面 ～", canvas.width / 2, 425);
-            }
-
-            requestAnimationFrame(draw);
-        }
-
-        draw();
-    </script>
+    <script type="module" src="js/main.js"></script>
 </body>
 </html>
