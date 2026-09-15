@@ -54,7 +54,7 @@ let items = [];
 let spawnTimer = 0; 
 
 // --------------------------------------------------
-// 画像データの読み込み (リポジトリ階層に対応するため image/ 直接指定)
+// 画像データの読み込み
 // --------------------------------------------------
 const playerRunImages = [];
 const TOTAL_RUN_FRAMES = 6;
@@ -68,7 +68,6 @@ for (let i = 1; i <= TOTAL_RUN_FRAMES; i++) {
 const playerJumpImage = new Image();
 playerJumpImage.src = "image/nyankonabe_jump.png";
 
-// ★ 敵の攻撃用画像（危険標識）の読み込み
 const bossWeaponImage = new Image();
 bossWeaponImage.src = "image/hyousiki_kiken.png";
 
@@ -485,7 +484,10 @@ export function drawRunGameScene(ctx, canvas) {
         // 当たり判定
         if (Math.abs(atk.x - playerX) < playerHitSize && Math.abs(atk.y - (playerY - 20)) < playerHitSize) {
             playerHp -= 10; 
-            if (playerHp < 0) playerHp = 0;
+            if (playerHp <= 0) {
+                playerHp = 0;
+                handleGameOver();
+            }
             bossAttacks.splice(i, 1);
             continue;
         }
@@ -515,15 +517,17 @@ export function drawRunGameScene(ctx, canvas) {
 
         if (Math.abs(item.x - playerX) < playerSize && Math.abs(item.y - (playerY - 40)) < playerSize) {
             if (item.type === "energy") {
-                if (attackEnergy < maxAttackEnergy) attackEnergy++;
-                
-                if (attackEnergy >= maxAttackEnergy) {
-                    attackEnergy = 0;
-                    flasks.push({
-                        x: playerX + 20,
-                        y: playerY - 60,
-                        speed: 8
-                    });
+                if (attackEnergy < maxAttackEnergy) {
+                    attackEnergy++;
+                    // エナジー満タン時に自動で攻撃用フラスコ発射
+                    if (attackEnergy >= maxAttackEnergy) {
+                        attackEnergy = 0;
+                        flasks.push({
+                            x: playerX + 20,
+                            y: playerY - 60,
+                            speed: 8
+                        });
+                    }
                 }
             } else if (item.type === "coin") {
                 stageCoins++;
@@ -719,8 +723,14 @@ export function drawRunGameScene(ctx, canvas) {
 
     const textX = windowX + 25;
     ctx.fillText(`HP: ${playerHp} / ${playerMaxHp}`, textX, windowY + 55);
-    ctx.fillText(`攻撃可能: ${attackEnergy} / ${maxAttackEnergy}`, textX, windowY + 95);
+    ctx.fillText(`エネルギー: ${attackEnergy} / ${maxAttackEnergy}`, textX, windowY + 95);
     ctx.fillText(`COIN: ${stageCoins}`, textX, windowY + 135);
+}
+
+// ゲームオーバー時の処理
+function handleGameOver() {
+    alert("ゲームオーバー！メニューに戻ります。");
+    setCurrentScene("menu");
 }
 
 // --------------------------------------------------
@@ -841,7 +851,12 @@ function updateUIElements() {
     }
 }
 
+let isEventsBound = false;
+
 export function setupGameEvents(canvas) {
+    if (isEventsBound) return;
+    isEventsBound = true;
+
     const startBtn = document.getElementById("startBtn");
     if (startBtn) {
         startBtn.addEventListener("click", () => {
@@ -898,15 +913,6 @@ export function setupGameEvents(canvas) {
         if (currentScene === "novel") {
             advanceNovel();
         } else if (currentScene === "run") {
-            if (attackEnergy >= maxAttackEnergy) {
-                attackEnergy = 0;
-                flasks.push({
-                    x: 60 + 20,
-                    y: playerY - 60,
-                    speed: 8
-                });
-            }
-
             if (isGrounded) {
                 isCharging = true;
                 chargeTimer = 0;
