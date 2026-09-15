@@ -54,23 +54,23 @@ let items = [];
 let spawnTimer = 0; 
 
 // --------------------------------------------------
-// 画像データの読み込み (GitHub Pages用に ./ に修正)
+// 画像データの読み込み (リポジトリ階層に対応するため image/ 直接指定)
 // --------------------------------------------------
 const playerRunImages = [];
 const TOTAL_RUN_FRAMES = 6;
 
 for (let i = 1; i <= TOTAL_RUN_FRAMES; i++) {
     const img = new Image();
-    img.src = `./image/gifpucture/nyankonabe_run${i}.png`;
+    img.src = `image/gifpucture/nyankonabe_run${i}.png`;
     playerRunImages.push(img);
 }
 
 const playerJumpImage = new Image();
-playerJumpImage.src = "./image/nyankonabe_jump.png";
+playerJumpImage.src = "image/nyankonabe_jump.png";
 
 // ★ 敵の攻撃用画像（危険標識）の読み込み
 const bossWeaponImage = new Image();
-bossWeaponImage.src = "./image/hyousiki_kiken.png";
+bossWeaponImage.src = "image/hyousiki_kiken.png";
 
 let playerFrameIndex = 0;
 let playerFrameTimer = 0;
@@ -93,15 +93,15 @@ let bossAttacks = [];
 
 const stageBossConfig = {
     1: {
-        idleFolder: "./image/singoukianim",
+        idleFolder: "image/singoukianim",
         idlePrefix: "singouki_idle",
         idleFrameCount: 4,
-        atkFolder: "./image/singoukianim_atk",
+        atkFolder: "image/singoukianim_atk",
         atkPrefix: "singouki_atk",
         atkFrameCount: 2
     },
     2: {
-        idleFolder: "./image/randoruanim",
+        idleFolder: "image/randoruanim",
         idlePrefix: "randoru_idle",
         idleFrameCount: 4,
         atkFolder: "",
@@ -109,7 +109,7 @@ const stageBossConfig = {
         atkFrameCount: 0
     },
     3: {
-        idleFolder: "./image/seiruanim",
+        idleFolder: "image/seiruanim",
         idlePrefix: "seiru_idle",
         idleFrameCount: 4,
         atkFolder: "",
@@ -147,11 +147,11 @@ const charaImages = {
     seiru: new Image()
 };
 
-charaImages.nyanko.src = "./image/chara_nyankonabe.png";
-charaImages.kyarameru.src = "./image/chara_kyarameru.png";
-charaImages.singouki.src = "./image/chara_singouki.png";
-charaImages.randoru.src = "./image/chara_randoru.png";
-charaImages.seiru.src = "./image/chara_seiru.png";
+charaImages.nyanko.src = "image/chara_nyankonabe.png";
+charaImages.kyarameru.src = "image/chara_kyarameru.png";
+charaImages.singouki.src = "image/chara_singouki.png";
+charaImages.randoru.src = "image/chara_randoru.png";
+charaImages.seiru.src = "image/chara_seiru.png";
 
 const stageDialogues = {
     1: {
@@ -215,7 +215,7 @@ const stageDialogues = {
 let resetStep = 1;
 
 const bgImage = new Image();
-bgImage.src = "./image/bg_title.png";
+bgImage.src = "image/bg_title.png";
 
 export function getCurrentScene() {
     return currentScene;
@@ -401,7 +401,7 @@ function drawAutoWrapText(ctx, text, x, y, maxWidth, lineHeight) {
     ctx.fillText(line, x, currentY);
 }
 
-// 4. RUNゲーム画面
+// RUNゲーム画面
 export function drawRunGameScene(ctx, canvas) {
     const windowPadding = 15;
     const windowX = windowPadding;
@@ -648,7 +648,7 @@ export function drawRunGameScene(ctx, canvas) {
     }
 
     // --------------------------------------------------
-    // ★ 敵の攻撃（危険標識：左に90度回転描画）
+    // 敵の攻撃（危険標識：左に90度回転描画）
     // --------------------------------------------------
     bossAttacks.forEach(atk => {
         if (bossWeaponImage.complete && bossWeaponImage.naturalWidth !== 0) {
