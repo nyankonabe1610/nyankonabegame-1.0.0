@@ -61,15 +61,16 @@ const TOTAL_RUN_FRAMES = 6;
 
 for (let i = 1; i <= TOTAL_RUN_FRAMES; i++) {
     const img = new Image();
-    img.src = `image/gifpucture/nyankonabe_run${i}.png`;
+    img.src = `../image/gifpucture/nyankonabe_run${i}.png`;
     playerRunImages.push(img);
 }
 
 const playerJumpImage = new Image();
-playerJumpImage.src = "image/nyankonabe_jump.png";
+playerJumpImage.src = "../image/nyankonabe_jump.png";
 
+// ★ 敵の攻撃用画像（危険標識）の読み込み
 const bossWeaponImage = new Image();
-bossWeaponImage.src = "image/hyousiki_kiken.png";
+bossWeaponImage.src = "../image/hyousiki_kiken.png";
 
 let playerFrameIndex = 0;
 let playerFrameTimer = 0;
@@ -92,15 +93,15 @@ let bossAttacks = [];
 
 const stageBossConfig = {
     1: {
-        idleFolder: "image/singoukianim",
+        idleFolder: "../image/singoukianim",
         idlePrefix: "singouki_idle",
         idleFrameCount: 4,
-        atkFolder: "image/singoukianim_atk",
+        atkFolder: "../image/singoukianim_atk",
         atkPrefix: "singouki_atk",
         atkFrameCount: 2
     },
     2: {
-        idleFolder: "image/randoruanim",
+        idleFolder: "../image/randoruanim",
         idlePrefix: "randoru_idle",
         idleFrameCount: 4,
         atkFolder: "",
@@ -108,7 +109,7 @@ const stageBossConfig = {
         atkFrameCount: 0
     },
     3: {
-        idleFolder: "image/seiruanim",
+        idleFolder: "../image/seiruanim",
         idlePrefix: "seiru_idle",
         idleFrameCount: 4,
         atkFolder: "",
@@ -146,11 +147,11 @@ const charaImages = {
     seiru: new Image()
 };
 
-charaImages.nyanko.src = "image/chara_nyankonabe.png";
-charaImages.kyarameru.src = "image/chara_kyarameru.png";
-charaImages.singouki.src = "image/chara_singouki.png";
-charaImages.randoru.src = "image/chara_randoru.png";
-charaImages.seiru.src = "image/chara_seiru.png";
+charaImages.nyanko.src = "../image/chara_nyankonabe.png";
+charaImages.kyarameru.src = "../image/chara_kyarameru.png";
+charaImages.singouki.src = "../image/chara_singouki.png";
+charaImages.randoru.src = "../image/chara_randoru.png";
+charaImages.seiru.src = "../image/chara_seiru.png";
 
 const stageDialogues = {
     1: {
@@ -214,7 +215,7 @@ const stageDialogues = {
 let resetStep = 1;
 
 const bgImage = new Image();
-bgImage.src = "image/bg_title.png";
+bgImage.src = "../image/bg_title.png";
 
 export function getCurrentScene() {
     return currentScene;
@@ -400,7 +401,7 @@ function drawAutoWrapText(ctx, text, x, y, maxWidth, lineHeight) {
     ctx.fillText(line, x, currentY);
 }
 
-// RUNゲーム画面
+// 4. RUNゲーム画面
 export function drawRunGameScene(ctx, canvas) {
     const windowPadding = 15;
     const windowX = windowPadding;
@@ -484,10 +485,7 @@ export function drawRunGameScene(ctx, canvas) {
         // 当たり判定
         if (Math.abs(atk.x - playerX) < playerHitSize && Math.abs(atk.y - (playerY - 20)) < playerHitSize) {
             playerHp -= 10; 
-            if (playerHp <= 0) {
-                playerHp = 0;
-                handleGameOver();
-            }
+            if (playerHp < 0) playerHp = 0;
             bossAttacks.splice(i, 1);
             continue;
         }
@@ -517,17 +515,15 @@ export function drawRunGameScene(ctx, canvas) {
 
         if (Math.abs(item.x - playerX) < playerSize && Math.abs(item.y - (playerY - 40)) < playerSize) {
             if (item.type === "energy") {
-                if (attackEnergy < maxAttackEnergy) {
-                    attackEnergy++;
-                    // エナジー満タン時に自動で攻撃用フラスコ発射
-                    if (attackEnergy >= maxAttackEnergy) {
-                        attackEnergy = 0;
-                        flasks.push({
-                            x: playerX + 20,
-                            y: playerY - 60,
-                            speed: 8
-                        });
-                    }
+                if (attackEnergy < maxAttackEnergy) attackEnergy++;
+                
+                if (attackEnergy >= maxAttackEnergy) {
+                    attackEnergy = 0;
+                    flasks.push({
+                        x: playerX + 20,
+                        y: playerY - 60,
+                        speed: 8
+                    });
                 }
             } else if (item.type === "coin") {
                 stageCoins++;
@@ -652,7 +648,7 @@ export function drawRunGameScene(ctx, canvas) {
     }
 
     // --------------------------------------------------
-    // 敵の攻撃（危険標識：左に90度回転描画）
+    // ★ 敵の攻撃（危険標識：左に90度回転描画）
     // --------------------------------------------------
     bossAttacks.forEach(atk => {
         if (bossWeaponImage.complete && bossWeaponImage.naturalWidth !== 0) {
@@ -723,14 +719,8 @@ export function drawRunGameScene(ctx, canvas) {
 
     const textX = windowX + 25;
     ctx.fillText(`HP: ${playerHp} / ${playerMaxHp}`, textX, windowY + 55);
-    ctx.fillText(`エネルギー: ${attackEnergy} / ${maxAttackEnergy}`, textX, windowY + 95);
+    ctx.fillText(`攻撃可能: ${attackEnergy} / ${maxAttackEnergy}`, textX, windowY + 95);
     ctx.fillText(`COIN: ${stageCoins}`, textX, windowY + 135);
-}
-
-// ゲームオーバー時の処理
-function handleGameOver() {
-    alert("ゲームオーバー！メニューに戻ります。");
-    setCurrentScene("menu");
 }
 
 // --------------------------------------------------
@@ -851,12 +841,7 @@ function updateUIElements() {
     }
 }
 
-let isEventsBound = false;
-
 export function setupGameEvents(canvas) {
-    if (isEventsBound) return;
-    isEventsBound = true;
-
     const startBtn = document.getElementById("startBtn");
     if (startBtn) {
         startBtn.addEventListener("click", () => {
@@ -913,6 +898,15 @@ export function setupGameEvents(canvas) {
         if (currentScene === "novel") {
             advanceNovel();
         } else if (currentScene === "run") {
+            if (attackEnergy >= maxAttackEnergy) {
+                attackEnergy = 0;
+                flasks.push({
+                    x: 60 + 20,
+                    y: playerY - 60,
+                    speed: 8
+                });
+            }
+
             if (isGrounded) {
                 isCharging = true;
                 chargeTimer = 0;
